@@ -59,6 +59,7 @@ if "mcq_data" in st.session_state:
         st.subheader("✅ Correct Answers")
         for idx, q in enumerate(st.session_state.mcq_data):
             correct_option = q["answer"]
-            correct_text = q["options"][correct_option]
+            correct_text = q["options"].get(correct_option, "[Answer Missing]")
+
             st.markdown(f"**Q{idx+1}:** {q['question']}")
             st.markdown(f"✔️ Correct Answer: `{correct_option}) {correct_text}`")
