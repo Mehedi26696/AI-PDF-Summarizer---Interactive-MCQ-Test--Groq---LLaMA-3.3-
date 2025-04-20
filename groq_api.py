@@ -43,13 +43,24 @@ Content:
         return f"❌ Error: {str(e)}"
 
 def parse_mcq_text(raw_quiz_text):
+    import re
     questions = []
     parts = re.split(r"\nQ\d+:", "\n" + raw_quiz_text)
     for part in parts[1:]:
         lines = part.strip().split("\n")
+        if len(lines) < 6:  # Basic sanity check
+            continue
         question = lines[0].strip()
-        options = {line[0]: line[3:].strip() for line in lines[1:5] if re.match(r"[abcd]\)", line)}
-        answer_line = next((line for line in lines if line.startswith("Answer:")), None)
-        correct = answer_line.split(":")[1].strip().lower() if answer_line else None
-        questions.append({"question": question, "options": options, "answer": correct})
+        options = {}
+        for line in lines[1:5]:
+            if re.match(r"^[a-d]\)", line.strip().lower()):
+                key = line[0].lower()
+                options[key] = line[3:].strip()
+        answer_line = next((line for line in lines if "Answer:" in line), None)
+        if not answer_line:
+            continue
+        answer = answer_line.split(":")[1].strip().lower()
+
+        if answer in options:  # Only keep valid Qs
+            questions.append({"question": question, "options": options, "answer": answer})
     return questions
