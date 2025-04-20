@@ -43,24 +43,38 @@ Content:
         return f"❌ Error: {str(e)}"
 
 def parse_mcq_text(raw_quiz_text):
-    import re
     questions = []
     parts = re.split(r"\nQ\d+:", "\n" + raw_quiz_text)
+
     for part in parts[1:]:
         lines = part.strip().split("\n")
-        if len(lines) < 6:  # Basic sanity check
-            continue
+        if len(lines) < 6:
+            continue  # Not enough lines for a question + 4 options + answer
+
         question = lines[0].strip()
         options = {}
-        for line in lines[1:5]:
-            if re.match(r"^[a-d]\)", line.strip().lower()):
-                key = line[0].lower()
-                options[key] = line[3:].strip()
-        answer_line = next((line for line in lines if "Answer:" in line), None)
-        if not answer_line:
-            continue
-        answer = answer_line.split(":")[1].strip().lower()
+        valid_keys = {'a', 'b', 'c', 'd'}
 
-        if answer in options:  # Only keep valid Qs
-            questions.append({"question": question, "options": options, "answer": answer})
+        for line in lines[1:5]:
+            match = re.match(r"^([a-dA-D])\)\s+(.*)", line.strip())
+            if match:
+                key = match.group(1).lower()
+                value = match.group(2).strip()
+                options[key] = value
+
+        answer_line = next((line for line in lines if "Answer:" in line), "")
+        match = re.search(r"Answer:\s*([a-dA-D])", answer_line)
+        if not match:
+            continue
+
+        answer = match.group(1).lower()
+
+        # Validation: Only accept questions with full options and valid answer
+        if len(options) == 4 and answer in options:
+            questions.append({
+                "question": question,
+                "options": options,
+                "answer": answer
+            })
+
     return questions
