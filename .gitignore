@@ -7,7 +7,7 @@ _pycache_/
 *.log
 
 # Ignore environment files
-.env
+
 *.pyc
 
 # Ignore build output
